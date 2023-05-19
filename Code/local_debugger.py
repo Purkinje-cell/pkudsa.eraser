@@ -1,6 +1,6 @@
 from interaction import *
-import player1
-import player2
+import random_robot as player1
+import my_robot as player2
 
 print("Initializing game...")
 game1 = Game_play(player2, player1)

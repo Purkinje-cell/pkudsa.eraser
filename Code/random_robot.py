@@ -15,8 +15,8 @@ class Random:
 
 
 class Plaser:
-    def __init__(self):
-        pass
+    def __init__(self, is_First):
+        self.is_First = is_First
 
     @ staticmethod
     def move(current_board, valid_movement, *args):

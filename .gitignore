@@ -1,1 +1,3 @@
 Code/*.json
+*.pyc
+Code/__pycache__/*.pyc
