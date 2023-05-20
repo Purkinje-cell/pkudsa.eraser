@@ -1,5 +1,5 @@
 from interaction import *
-import random_robot as player1
+import greedy_robot as player1
 import my_robot as player2
 
 print("Initializing game...")

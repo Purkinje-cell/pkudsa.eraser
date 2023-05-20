@@ -11,13 +11,13 @@ ACTION_SPACE = [((i, j), (i, j + 1)) for i in range(BOARD_SIZE) for j in range(B
 
 
 class MyBoard:
-    """
+    '''
     这是用于记录棋盘状态的类，包含棋盘的大小、棋盘的状态、棋盘的颜色。包含三个方法：
     1. change：交换棋盘上两个位置的棋子
     2. check：检查棋盘上是否有三个或以上的连续棋子
     3. eliminate：消除棋盘上的连续棋子（TODO 可以尝试能否用numpy向量化加速）
     正常来说不需要改动里面的代码。
-    """
+    '''
 
     def __init__(self, board, colors, turn_number):
         self.size = board.shape[0]
@@ -122,7 +122,7 @@ class QLearning:
 
 
 class Agent:
-    """
+    '''
     这是智能体类，包含选择函数。
     智能体的参数包括当前的棋盘状态，当前下一步可以引发消除的动作，当前双方的得分和回合数。
     目前我的设计思路：
@@ -130,7 +130,7 @@ class Agent:
     （1）计概A学过的MinMax + AB剪枝算法，其中局面的估值（可能可以）采用这一状态下的得分减去对手的得分（假如游戏胜利则来一个大的），这样可以保证智能体的行动是为了自己的利益最大化。 TODO MinMax是都要写的
     （2）MCTS（蒙特卡洛树搜索），这个算法对估值函数要求小，但是可能容易超时。（可以考虑在后面几步用）
     （3）Q-Learning，这个算法也对估值函数要求小，但是需要大量的训练，我目前想试一试。 TODO YDC来写一写
-    """
+    '''
 
     def __init__(self, board, operations, scores, turn_number):
         self.board = board
@@ -184,26 +184,26 @@ class Agent:
                     break
         return best_value, best_action
 
-    def select(self, valid_movement, depth=2):
-        """
+    def select(self, valid_movement, depth=3):
+        '''
         TODO 写一个选择函数，目前有3种选择（MinMax + AB剪枝、MCTS（蒙特卡洛树搜索）、Q-Learning（这个我来试着写一写）
         输入：当前棋盘、当前可行的操作
-        """
-        return self.minimax(self.board, depth, True, ACTION_SPACE, self.scores)[1]
+        '''
+        return self.minimax(self.board, 1, True, ACTION_SPACE, self.scores)[1]
 
 
 class Plaser:
-    """
+    '''
     游戏玩家类，包含移动函数。
-    """
+    '''
 
     def __init__(self, is_First):
         self.is_First = is_First
 
     def move(self, board, operations, scores, turn_number):
-        """
+        '''
         这是移动函数，输入是棋盘、操作、分数、回合数，输出是移动的位置。
-        """
+        '''
         my_board = MyBoard(board=board, colors=np.array(
             list(COLORS.keys())), turn_number=turn_number)
         root = Agent(board=my_board, operations=operations,
