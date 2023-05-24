@@ -6,7 +6,6 @@ from eraserconfig import *
 import traceback
 import numpy as np
 import json
-
 def serialize_np(obj):
     if isinstance(obj, (np.int64, np.int32)):
         return int(obj)
