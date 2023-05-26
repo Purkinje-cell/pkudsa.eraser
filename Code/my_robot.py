@@ -39,12 +39,21 @@ class MyBoard:
     @staticmethod
     def check(arr):
         repeats = set()
+        visited = {(i, j): 0 for i in range(BOARD_SIZE) for j in range(BOARD_SIZE)}
         for i in range(0, BOARD_SIZE - 2):
             for j in range(BOARD_SIZE):
+                if visited[(i, j)] == 1 or visited[(j, i)] == 1:
+                    continue
                 if arr[i, j] != 'nan' and (arr[i+1:i+3, j] == arr[i, j]).all():
                     repeats.add((i+1, j))
+                    visited[(i, j)] = 1
+                    visited[(i+1, j)] = 1
+                    visited[(i+2, j)] = 1
                 if arr[j, i] != 'nan' and (arr[j, i+1:i+3] == arr[j, i]).all():
                     repeats.add((j, i+1))
+                    visited[(j, i)] = 1
+                    visited[(j, i+1)] = 1
+                    visited[(j, i+2)] = 1
         return repeats
     
     @staticmethod
@@ -77,17 +86,7 @@ class MyBoard:
         directions = np.array([[1, 0], [-1, 0], [0, 1], [0, -1]])
         to_visit = self.check(arr)
         score = 0
-        for i in range(BOARD_SIZE):
-            row = arr[i]
-            row_view = np.lib.stride_tricks.as_strided(row, (BOARD_SIZE - 2, 3), (row.itemsize, row.itemsize))
-            connected = np.all(row_view == row_view[:, 0, None], axis=1)
-            equals = np.where(connected)[0]
-            
-            col = arr[:, i]
-            col_view = np.lib.stride_tricks.as_strided(col, (BOARD_SIZE - 2, 3), (col.itemsize*6, col.itemsize*6))
-            connected = np.all(col_view == col_view[:, 0, None], axis=1)
-            equals = np.where(connected)[0]
-
+        
         for coord in to_visit:
             if to_eliminate[coord[0], coord[1]] == 1:
                 continue
@@ -114,7 +113,6 @@ class MyBoard:
             col = self.board[i]
             self.board[i, :col_remained[i]] = col[:self.size][to_eliminate[i] == 0]
             self.board[i, col_remained[i]:N_ROWS - col_eliminated[i]] = col[self.size:]
-            self.board[i, N_ROWS - col_eliminated[i]:] = np.nan
 
         # Return the total score and the number of columns eliminated
         return score, col_eliminated
@@ -136,25 +134,32 @@ class Agent:
         self.turn_number = turn_number
 
     def minimax(self, board, depth, max_player, action_space, scores, alpha=-np.inf, beta=np.inf):
+        '''
+        区域中间和周围的差异，棋盘连通块的数目
+        '''
         if depth == 0 or board.game_over():
             return scores[0] - scores[1], action_space[0]
         
         best_action = action_space[0]
         if max_player:
             best_value = -9999
+            t1 = time.time()
             for i in range(60):
+                t2 = time.time()
+                if t2 - t1 > 0.45:
+                    break
                 new_board = board.copy()
                 action = action_space[i]
                 new_board.change(*action)
                 if i == 0:
-                    t1 = time.time()
+                    t3 = time.time()
                 total_score, columns_eliminated = new_board.eliminate()
                 while columns_eliminated.sum() and not (new_board.board[:BOARD_SIZE, :BOARD_SIZE] == 'nan').any():
                     score, columns_eliminated = new_board.eliminate()
                     total_score += score
-                if i == 59:
-                    t2 = time.time()
-                    print("Elimination time: ", t2 - t1)
+                if i == 0:
+                    t4 = time.time()
+                    print("Elimination time 2: ", t4 - t3)
                 new_scores = scores.copy()
                 new_scores[0] += total_score  # update max player's score
                 value, _ = self.minimax(
@@ -165,6 +170,7 @@ class Agent:
                 alpha = max(alpha, best_value)
                 if alpha >= beta:
                     break
+            print("Best value: ", best_value)
         else:
             best_value = 9999
             for i in range(60):
@@ -192,8 +198,11 @@ class Agent:
         TODO 写一个选择函数，目前有3种选择（MinMax + AB剪枝、MCTS（蒙特卡洛树搜索）、Q-Learning（这个我来试着写一写）
         输入：当前棋盘、当前可行的操作
         """
-        
-        return self.minimax(self.board, 2, True, ACTION_SPACE, self.scores)[1]
+        op = self.operations
+        no_op = [x for x in ACTION_SPACE if x not in op]
+        op = op + no_op
+        return self.minimax(self.board, depth, True, op, self.scores)[1]
+
 
 
 class Plaser:
